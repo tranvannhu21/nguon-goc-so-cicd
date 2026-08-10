@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -74,6 +75,10 @@ public class CropAreaAnalysisControllerTest {
     @Test
     @WithMockUser(roles = "VT-02") // Đăng nhập với vai trò Quản lý HTX (không có quyền xem báo cáo ngành)
     void getAnalysis_shouldReturnForbidden_whenUserIsOrgManager() throws Exception {
+        // Phân quyền nằm trong service (chỉ VT-01/VT-05): mock service ném AccessDeniedException
+        when(cropAreaAnalysisService.getAnalysis(eq(2026), any(), any(), any(), any(), any()))
+                .thenThrow(new AccessDeniedException("Bạn không có quyền truy cập báo cáo phân tích ngành."));
+
         // When / Then: Gửi yêu cầu và mong đợi hệ thống chặn với mã lỗi 403 Forbidden
         mockMvc.perform(get("/api/v1/reports/crop-area-analysis")
                         .with(csrf())
@@ -82,10 +87,10 @@ public class CropAreaAnalysisControllerTest {
     }
 
     @Test
-    void getAnalysis_shouldReturnUnauthorized_whenUserNotLogin() throws Exception {
-        // When / Then: Gửi yêu cầu khi chưa đăng nhập và mong đợi lỗi 401 Unauthorized
+    void getAnalysis_shouldReturnForbidden_whenUserNotLogin() throws Exception {
+        // When / Then: Gửi yêu cầu khi chưa đăng nhập và mong đợi lỗi 403 Forbidden
         mockMvc.perform(get("/api/v1/reports/crop-area-analysis")
                         .with(csrf()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }

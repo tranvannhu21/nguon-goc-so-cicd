@@ -356,7 +356,13 @@ public class ChainEventServiceImpl implements ChainEventService {
         ProductionLot lot = productionLotRepository.findById(request.getProductionLotId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất."));
 
-        validateOrganization(lot, currentUser);
+        try {
+            validateOrganization(lot, currentUser);
+        } catch (BusinessException e) {
+            eventValidationService.logFailedAttempt(request.getProductionLotId(), lot.getName(),
+                    request.getEventType(), e.getMessage(), currentUser);
+            throw e;
+        }
 
         if (request.getRecordedAt().isAfter(LocalDateTime.now())) {
             throw new BusinessException("Thời điểm ghi nhận không được là thời gian ở tương lai.");

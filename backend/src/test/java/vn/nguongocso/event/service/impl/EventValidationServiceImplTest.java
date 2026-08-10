@@ -29,12 +29,14 @@ import vn.nguongocso.event.dto.response.FailedEventLogResponse;
 import vn.nguongocso.event.dto.response.LotValidationResponse;
 import vn.nguongocso.event.entity.FailedEventLog;
 import vn.nguongocso.event.enums.ChainEventType;
+import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.event.repository.FailedEventLogRepository;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.report.repository.DossierExportHistoryRepository;
 import vn.nguongocso.trace.entity.CodeRange;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.enums.ShipmentStatus;
@@ -62,6 +64,12 @@ class EventValidationServiceImplTest {
 
     @Mock
     private CodeRangeRepository codeRangeRepository;
+
+    @Mock
+    private ChainEventRepository chainEventRepository;
+
+    @Mock
+    private DossierExportHistoryRepository dossierExportHistoryRepository;
 
     @InjectMocks
     private EventValidationServiceImpl eventValidationService;

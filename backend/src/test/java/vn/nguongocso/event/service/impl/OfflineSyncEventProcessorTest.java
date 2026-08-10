@@ -1,8 +1,8 @@
 package vn.nguongocso.event.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
@@ -18,8 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
-import vn.nguongocso.event.dto.request.RecordMobileEventRequest;
+import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.request.RecordOfflineEventDto;
+import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.dto.response.OfflineEventSyncResultDto;
 import vn.nguongocso.event.entity.OfflineSyncLog;
@@ -28,10 +29,7 @@ import vn.nguongocso.event.repository.OfflineSyncLogRepository;
 import vn.nguongocso.event.service.ChainEventService;
 import vn.nguongocso.event.service.EventValidationService;
 import vn.nguongocso.exception.BusinessException;
-import vn.nguongocso.organization.entity.Organization;
-import vn.nguongocso.trace.entity.Shipment;
-import vn.nguongocso.trace.enums.ShipmentStatus;
-import vn.nguongocso.trace.repository.ShipmentRepository;
+import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 @ExtendWith(MockitoExtension.class)
 class OfflineSyncEventProcessorTest {
@@ -46,10 +44,10 @@ class OfflineSyncEventProcessorTest {
     private UserRepository userRepository;
 
     @Mock
-    private ShipmentRepository shipmentRepository;
+    private EventValidationService eventValidationService;
 
     @Mock
-    private EventValidationService eventValidationService;
+    private TraceCodeRepository traceCodeRepository;
 
     @InjectMocks
     private OfflineSyncEventProcessor eventProcessor;
@@ -104,15 +102,15 @@ class OfflineSyncEventProcessorTest {
     void processEvent_RecalledShipment_ThrowsBusinessException() {
         // Given
         offlineEventDto.setEventType(ChainEventType.TRANSPORT);
-        Shipment recalledShipment = new Shipment();
-        recalledShipment.setId(offlineEventDto.getProductionLotId());
-        recalledShipment.setName("Lô hàng xuất khẩu 01");
-        recalledShipment.setStatus(ShipmentStatus.RECALLED);
+        offlineEventDto.setCodeValue("TRACE001");
+        offlineEventDto.setEventData(new HashMap<>(Map.of(
+                "fromLocation", "Hà Nội",
+                "toLocation", "Thái Nguyên")));
 
         when(offlineSyncLogRepository.findByOfflineEventId(offlineEventDto.getOfflineEventId()))
                 .thenReturn(Optional.empty());
-        when(shipmentRepository.findById(offlineEventDto.getProductionLotId()))
-                .thenReturn(Optional.of(recalledShipment));
+        when(chainEventService.recordTransportEvent(any(RecordTransportEventRequest.class), eq(currentUser)))
+                .thenThrow(new BusinessException("Lô hàng đã bị thu hồi, không thể ghi nhận sự kiện."));
 
         // When
         OfflineEventSyncResultDto result = eventProcessor.processEvent(offlineEventDto, syncId, currentUser);
@@ -123,7 +121,6 @@ class OfflineSyncEventProcessorTest {
         assertThat(result.getMessage()).contains("Lô hàng đã bị thu hồi, không thể ghi nhận sự kiện.");
 
         verify(eventValidationService).logFailedAttempt(any(), any(), any(), any(), any());
-        verifyNoInteractions(chainEventService);
     }
 
     @Test
@@ -137,7 +134,7 @@ class OfflineSyncEventProcessorTest {
         ChainEventResponse mockEventResponse = ChainEventResponse.builder()
                 .id(UUID.randomUUID())
                 .build();
-        when(chainEventService.recordMobileEvent(any(RecordMobileEventRequest.class), eq(currentUser)))
+        when(chainEventService.recordHarvestEvent(any(RecordHarvestEventRequest.class), eq(currentUser)))
                 .thenReturn(mockEventResponse);
 
         // When

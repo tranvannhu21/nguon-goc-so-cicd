@@ -16,6 +16,7 @@ import vn.nguongocso.farm.service.AttachmentService;
 
 import java.util.UUID;
 
+import vn.nguongocso.permission.service.PermissionChecker;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -38,6 +39,9 @@ public class FarmLogAttachmentControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private PermissionChecker permissionChecker;
 
     private final UUID logId = UUID.randomUUID();
 

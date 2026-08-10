@@ -118,11 +118,10 @@ export default function PublicHomePage() {
         }
         toast.error("Không thể mở camera. Hãy kiểm tra camera hoặc nhập mã thủ công.");
       } finally {
-        if (!isActive) return;
-        if (!controlsRef.current) {
+        if (isActive && !controlsRef.current) {
           setIsScanning(false);
         }
-      }
+        }
     };
 
     void startScanning();

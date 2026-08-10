@@ -12,7 +12,10 @@ interface QrCodeGridProps {
 
 export const QrCodeGrid = ({
   traceCodes,
-  baseUrl = import.meta.env.VITE_ASSET_BASE_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/v1\/?$/, "") || "http://localhost:8080",
+  baseUrl =
+  import.meta.env.VITE_ASSET_BASE_URL ||
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v1\/?$/, "") ||
+  "http://localhost:8080",
 }: QrCodeGridProps) => {
   const resolveUrl = (imageUrl: string) =>
     imageUrl.startsWith("http") ? imageUrl : `${baseUrl}${imageUrl}`;

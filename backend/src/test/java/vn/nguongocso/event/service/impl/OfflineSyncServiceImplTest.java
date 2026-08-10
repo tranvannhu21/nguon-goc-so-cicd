@@ -7,7 +7,6 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,28 +16,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import vn.nguongocso.auth.entity.User;
-import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.event.dto.request.OfflineEventSyncRequest;
 import vn.nguongocso.event.dto.request.RecordOfflineEventDto;
 import vn.nguongocso.event.dto.response.OfflineEventSyncResponse;
 import vn.nguongocso.event.dto.response.OfflineEventSyncResultDto;
 import vn.nguongocso.event.enums.ChainEventType;
-import vn.nguongocso.event.repository.OfflineSyncLogRepository;
-import vn.nguongocso.exception.BusinessException;
 
 @ExtendWith(MockitoExtension.class)
 class OfflineSyncServiceImplTest {
 
     @Mock
     private OfflineSyncEventProcessor offlineSyncEventProcessor;
-
-    @Mock
-    private OfflineSyncLogRepository offlineSyncLogRepository;
-
-    @Mock
-    private UserRepository userRepository;
 
     @InjectMocks
     private OfflineSyncServiceImpl offlineSyncService;
@@ -51,7 +40,6 @@ class OfflineSyncServiceImplTest {
     void setUp() {
         syncId = UUID.randomUUID();
         currentUser = mock(CustomUserDetails.class);
-        // LOẠI BỎ: when(currentUser.getUserId()).thenReturn(UUID.randomUUID()); từ đây
 
         RecordOfflineEventDto event1 = new RecordOfflineEventDto();
         event1.setOfflineEventId(UUID.randomUUID());
@@ -100,10 +88,6 @@ class OfflineSyncServiceImplTest {
         // Given
         RecordOfflineEventDto eventSuccess = syncRequest.getEvents().get(0);
         RecordOfflineEventDto eventFailed = syncRequest.getEvents().get(1);
-        UUID mockUserId = UUID.randomUUID();
-
-        // Định nghĩa mock cho currentUser.getUserId() riêng trong test case này
-        when(currentUser.getUserId()).thenReturn(mockUserId);
 
         OfflineEventSyncResultDto resSuccess = OfflineEventSyncResultDto.builder()
                 .offlineEventId(eventSuccess.getOfflineEventId())
@@ -113,12 +97,14 @@ class OfflineSyncServiceImplTest {
         // Mô phỏng: Sự kiện 1 thành công
         when(offlineSyncEventProcessor.processEvent(eq(eventSuccess), eq(syncId), eq(currentUser)))
                 .thenReturn(resSuccess);
-        // Mô phỏng: Sự kiện 2 ném ra lỗi (lô bị thu hồi)
+        // Mô phỏng: Sự kiện 2 thất bại (lô bị thu hồi) — processor trả FAILED, không throw
+        OfflineEventSyncResultDto resFailed = OfflineEventSyncResultDto.builder()
+                .offlineEventId(eventFailed.getOfflineEventId())
+                .status("FAILED")
+                .message("Lô hàng đã bị thu hồi, không thể ghi nhận sự kiện.")
+                .build();
         when(offlineSyncEventProcessor.processEvent(eq(eventFailed), eq(syncId), eq(currentUser)))
-                .thenThrow(new BusinessException("Lô hàng đã bị thu hồi, không thể ghi nhận sự kiện."));
-
-        when(userRepository.findById(mockUserId))
-                .thenReturn(Optional.of(new User()));
+                .thenReturn(resFailed);
 
         // When
         OfflineEventSyncResponse response = offlineSyncService.syncOfflineEvents(syncRequest, currentUser);
@@ -128,9 +114,6 @@ class OfflineSyncServiceImplTest {
         assertThat(response.getTotalEvents()).isEqualTo(2);
         assertThat(response.getSuccessCount()).isEqualTo(1);
         assertThat(response.getFailedCount()).isEqualTo(1);
-
-        // Kiểm tra xem hệ thống có lưu vết thất bại (FAILED) vào bảng offline_sync_logs hay không
-        verify(offlineSyncLogRepository, times(1)).save(any());
 
         OfflineEventSyncResultDto failResult = response.getResults().stream()
                 .filter(r -> r.getOfflineEventId().equals(eventFailed.getOfflineEventId()))
