@@ -7,18 +7,15 @@ import type { TraceCode } from "@/types/shipment";
 
 interface QrCodeGridProps {
   traceCodes: TraceCode[];
-  baseUrl?: string;
 }
 
-export const QrCodeGrid = ({
-  traceCodes,
-  baseUrl =
-  import.meta.env.VITE_ASSET_BASE_URL ||
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v1\/?$/, "") ||
-  "http://localhost:8080",
-}: QrCodeGridProps) => {
-  const resolveUrl = (imageUrl: string) =>
-    imageUrl.startsWith("http") ? imageUrl : `${baseUrl}${imageUrl}`;
+export const QrCodeGrid = ({ traceCodes }: QrCodeGridProps) => {
+  const resolveUrl = (imageUrl: string) => {
+    if (/^https?:\/\//i.test(imageUrl)) {
+      return imageUrl;
+    }
+    return new URL(imageUrl, window.location.origin).toString();
+  };
 
   const [failedIds, setFailedIds] = useState<Set<string>>(new Set());
   const markFailed = (id: string) =>
