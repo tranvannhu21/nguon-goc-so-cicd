@@ -1,0 +1,101 @@
+name: ${COMPOSE_PROJECT_NAME:-nguon-goc-so-cicd}
+
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    init: true
+    environment:
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required - copy root .env.example to .env and set it}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required - copy root .env.example to .env and set it}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: nguon-goc-so-backend:compose
+    restart: unless-stopped
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required - copy root .env.example to .env and set it}
+      PORT: "8080"
+      FRONTEND_URL: ${FRONTEND_URL}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - copy root .env.example to .env and set it}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      LOCATIONIQ_BASE_URL: ${LOCATIONIQ_BASE_URL}
+      LOCATIONIQ_API_KEY: ${LOCATIONIQ_API_KEY}
+      MYSQLDUMP_PATH: /usr/bin/mysqldump
+      MYSQL_PATH: /usr/bin/mysql
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS}
+      TZ: Asia/Ho_Chi_Minh
+    expose:
+      - "8080"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_files:/app/files
+      - backend_backups:/app/backups
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+        VITE_ASSET_BASE_URL: ""
+    image: nguon-goc-so-frontend:compose
+    restart: unless-stopped
+    init: true
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db_data:
+  backend_uploads:
+  backend_files:
+  backend_backups:
+
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME:-nguon-goc-so-cicd}-net

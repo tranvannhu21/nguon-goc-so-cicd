@@ -50,14 +50,15 @@ venv/
 # ============================================================
 # Environment / Secrets
 # ============================================================
-.env
-docker-compose.yml
 
-*.env
+.env
 .env.*
+**/.env
+**/.env.*
+
+# Keep environment templates
 !.env.example
-backend/.env
-frontend/.env
+!**/.env.example
 
 # ============================================================
 # Logs

@@ -1,0 +1,31 @@
+# === Secrets / local config ===
+.env
+.env.*
+
+# === Version control ===
+.git
+.github
+.gitignore
+.idea
+.vscode
+.settings
+.classpath
+.project
+
+# === Build output ===
+target
+
+# === Runtime data / logs ===
+*.log
+logs
+uploads
+files
+backups
+
+# === OS / editor metadata ===
+Thumbs.db
+.DS_Store
+
+# === Docker internals ===
+.dockerignore
+Dockerfile

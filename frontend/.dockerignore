@@ -1,0 +1,32 @@
+# === Secrets / local config ===
+.env
+.env.*
+.env.example
+
+# === Version control ===
+.git
+.gitignore
+.github
+.idea
+.vscode
+
+# === Build output / dependencies ===
+node_modules
+dist
+coverage
+
+# === Logs / runtime data ===
+*.log
+logs
+
+# === Docs / misc notes ===
+npm_member_check.txt
+README.md
+
+# === OS / editor metadata ===
+Thumbs.db
+.DS_Store
+
+# === Docker internals ===
+Dockerfile
+.dockerignore

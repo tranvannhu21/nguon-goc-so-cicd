@@ -4,12 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import vn.nguongocso.auth.entity.Role;
-import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.common.PageResponse;
@@ -17,16 +16,17 @@ import vn.nguongocso.config.JwtTokenProvider;
 import vn.nguongocso.config.SecurityConfig;
 import vn.nguongocso.alert.controller.ActivityLogController;
 import vn.nguongocso.alert.service.ActivityLogService;
-import vn.nguongocso.organization.entity.Organization;
-import vn.nguongocso.organization.entity.OrganizationUser;
 
 import java.util.Collections;
-import java.util.UUID;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,35 +48,17 @@ public class ActivityLogControllerTest {
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
 
-    // Helper tạo CustomUserDetails
-    private CustomUserDetails createCustomUserDetails(String username, String roleCode) {
-        User user = new User();
-        user.setUserId(UUID.randomUUID());
-        user.setUserName(username);
-        user.setFullName("Test User");
-        user.setPasswordHash("password");
-
-        Organization org = new Organization();
-        org.setOrganizationId(UUID.randomUUID());
-        org.setName("Test Organization");
-        org.setCode("TEST");
-
-        OrganizationUser orgUser = new OrganizationUser();
-        orgUser.setOrganization(org);
-
-        Role role = new Role();
-        role.setCode(roleCode);
-        role.setName("Role Name");
-
-        return new CustomUserDetails(user, orgUser, role);
+    private CustomUserDetails createUser(String roleCode) {
+        CustomUserDetails details = mock(CustomUserDetails.class);
+        when(details.getUsername()).thenReturn("manager01");
+        when(details.getOrganizationCode()).thenReturn("VT-01");
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleCode));
+        doReturn(authorities).when(details).getAuthorities();
+        return details;
     }
 
     @Test
-    @WithUserDetails("manager") // ✅ KHÔNG chỉ định bean name
     void getActivityLogs_shouldReturnOk_whenUserIsOrgManager() throws Exception {
-        CustomUserDetails mockUserDetails = createCustomUserDetails("manager", "VT-02");
-        when(customUserDetailsService.loadUserByUsername("manager")).thenReturn(mockUserDetails);
-
         PageResponse response = PageResponse.builder()
                 .items(Collections.emptyList())
                 .page(0)
@@ -89,6 +71,7 @@ public class ActivityLogControllerTest {
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/v1/organizations/activity-logs")
+                        .with(user(createUser("VT-02")))
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -96,12 +79,9 @@ public class ActivityLogControllerTest {
     }
 
     @Test
-    @WithUserDetails("recorder")
     void getActivityLogs_shouldReturnForbidden_whenUserHasWrongRole() throws Exception {
-        CustomUserDetails mockUserDetails = createCustomUserDetails("recorder", "VT-03");
-        when(customUserDetailsService.loadUserByUsername("recorder")).thenReturn(mockUserDetails);
-
         mockMvc.perform(get("/api/v1/organizations/activity-logs")
+                        .with(user(createUser("VT-03")))
                         .with(csrf()))
                 .andExpect(status().isForbidden());
     }

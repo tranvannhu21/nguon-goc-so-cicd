@@ -8,10 +8,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.notification.service.NotificationService;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
@@ -42,6 +45,18 @@ public class ShipmentServiceTest {
 
     @Mock
     private ProductionLotRepository productionLotRepository;
+
+    @Mock
+    private QRCodeService qrCodeService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private PermissionChecker permissionChecker;
 
     @InjectMocks
     private ShipmentServiceImpl shipmentService;
@@ -93,6 +108,8 @@ public class ShipmentServiceTest {
         when(productionLotRepository.findById(any())).thenReturn(Optional.of(productionLot));
         when(codeRangeRepository.findByOrganizationOrganizationId(orgId))
                 .thenReturn(Optional.of(codeRange));
+        when(traceCodeRepository.findMaxCodeValueByOrganization(orgId, "893001"))
+                .thenReturn("8930010000000100");
 
         CreateShipmentRequest request = new CreateShipmentRequest();
         request.setProductionLotId(productionLot.getId());
@@ -118,7 +135,13 @@ public class ShipmentServiceTest {
         when(productionLotRepository.findById(any())).thenReturn(Optional.of(productionLot));
         when(codeRangeRepository.findByOrganizationOrganizationId(orgId))
                 .thenReturn(Optional.of(codeRange));
-        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(traceCodeRepository.findMaxCodeValueByOrganization(orgId, "893001"))
+                .thenReturn("8930010000000090");
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(inv -> {
+            Shipment saved = inv.getArgument(0);
+            saved.setId(UUID.randomUUID());
+            return saved;
+        });
         when(traceCodeRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
         when(codeRangeRepository.save(any(CodeRange.class))).thenReturn(codeRange);
 

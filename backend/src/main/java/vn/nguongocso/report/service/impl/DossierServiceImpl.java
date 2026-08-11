@@ -44,7 +44,6 @@ import vn.nguongocso.trace.repository.ShipmentRepository;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -173,21 +172,21 @@ public class DossierServiceImpl implements DossierService {
             PdfWriter.getInstance(document, out);
             document.open();
 
-            // Cấu hình Font hỗ trợ hiển thị Tiếng Việt
+            // Cấu hình Font hỗ trợ hiển thị Tiếng Việt (nạp từ classpath để hoạt động cả khi chạy test lẫn production)
             Font titleFont;
             Font headerFont;
             Font boldFont;
             Font normalFont;
 
-            String fontPath = "backend/src/main/resources/fonts/Roboto-Bold.ttf";
-            if (new File(fontPath).exists()) {
-                BaseFont bf = BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            try {
+                BaseFont bf = BaseFont.createFont("/fonts/Roboto-Bold.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
                 titleFont = new Font(bf, 16, Font.BOLD, Color.BLACK);
                 headerFont = new Font(bf, 12, Font.BOLD, Color.BLACK);
                 boldFont = new Font(bf, 10, Font.BOLD, Color.BLACK);
                 normalFont = new Font(bf, 10, Font.NORMAL, Color.BLACK);
-            } else {
-                // Fallback nếu không có hệ điều hành Windows hoặc không tìm thấy font Arial
+            } catch (Exception e) {
+                // Fallback nếu không tìm thấy font Roboto
+                log.warn("Không tìm thấy font Roboto trên classpath, dùng font mặc định", e);
                 titleFont = new Font(Font.HELVETICA, 16, Font.BOLD, Color.BLACK);
                 headerFont = new Font(Font.HELVETICA, 12, Font.BOLD, Color.BLACK);
                 boldFont = new Font(Font.HELVETICA, 10, Font.BOLD, Color.BLACK);

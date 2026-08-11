@@ -20,6 +20,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import vn.nguongocso.event.service.OfflineSyncService;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.config.JwtTokenProvider;
@@ -58,6 +60,12 @@ class ChainEventControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private PermissionChecker permissionChecker;
+
+    @MockitoBean
+    private OfflineSyncService offlineSyncService;
 
     private RecordHarvestEventRequest validRequest;
     private RecordMobileEventRequest validRequestMobile;

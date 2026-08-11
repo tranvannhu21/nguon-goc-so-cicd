@@ -53,16 +53,13 @@ public class LookupStatisticsServiceTest {
     @BeforeEach
     void setUp() {
         adminUser = mock(CustomUserDetails.class);
-        when(adminUser.getRoleCode()).thenReturn("VT-01");
-
         htxUser = mock(CustomUserDetails.class);
-        when(htxUser.getRoleCode()).thenReturn("VT-02");
-        when(htxUser.getOrganizationId()).thenReturn(htxOrgId);
     }
 
     @Test
     void getStatistics_shouldSuccess_forAdmin() {
         // Given
+        when(adminUser.getRoleCode()).thenReturn("VT-01");
         when(traceCodeScanLogRepository.countScans(any(), any(), any(), any(), any())).thenReturn(100L);
         when(traceCodeScanLogRepository.countUniqueCodes(any(), any(), any(), any(), any())).thenReturn(40L);
         when(traceCodeScanLogRepository.countAbnormalScans(any(), any(), any(), any(), any())).thenReturn(5L);
@@ -83,6 +80,10 @@ public class LookupStatisticsServiceTest {
 
     @Test
     void getStatistics_shouldThrowForbidden_whenHtxUserAccessOtherOrg() {
+        // Given
+        when(htxUser.getRoleCode()).thenReturn("VT-02");
+        when(htxUser.getOrganizationId()).thenReturn(htxOrgId);
+
         // When / Then
         assertThatThrownBy(() -> lookupStatisticsService.getStatistics(
                 null, null, null, null, otherOrgId, "MONTH", htxUser))
@@ -93,6 +94,8 @@ public class LookupStatisticsServiceTest {
     @Test
     void getAbnormalScans_shouldReturnPage_whenAuthorized() {
         // Given
+        when(htxUser.getRoleCode()).thenReturn("VT-02");
+        when(htxUser.getOrganizationId()).thenReturn(htxOrgId);
         Pageable pageable = PageRequest.of(0, 10);
         ProductionLot productionLot = new ProductionLot();
         productionLot.setName("Lô Chè A");

@@ -27,10 +27,13 @@ import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.farm.dto.response.UpdateProductionLotResponse;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
+import vn.nguongocso.farm.repository.ProductionLotImportHistoryRepository;
+import vn.nguongocso.farm.service.ProductionLotImportService;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.entity.OrganizationUser;
 import vn.nguongocso.report.dto.response.ProductionLotDashboardResponse;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,7 +46,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductionLotController.class)
@@ -65,6 +67,15 @@ class ProductionLotControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private PermissionChecker permissionChecker;
+
+    @MockitoBean
+    private ProductionLotImportService productionLotImportService;
+
+    @MockitoBean
+    private ProductionLotImportHistoryRepository importHistoryRepository;
 
     private UUID lotId;
     private CustomUserDetails userDetails;
