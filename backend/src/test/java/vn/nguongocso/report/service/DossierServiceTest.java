@@ -100,7 +100,7 @@ public class DossierServiceTest {
                 .id(UUID.randomUUID())
                 .name("Lô chè giống mới")
                 .organization(org)
-                .productCategory(new ProductCategory(UUID.randomUUID(), "Chè", "TEA", "Chè xanh", true))
+                .productCategory(new ProductCategory(UUID.randomUUID(), "Chè", "TEA", "Chè xanh", true, null, null, null, null))
                 .status(ProductionLotStatus.CLOSED)
                 .plantingDate(LocalDate.now().minusDays(30))
                 .harvestDate(LocalDate.now())

@@ -19,6 +19,8 @@ import {
   Truck,
   UserCheck,
   Users,
+  Thermometer,
+  Warehouse,
   X,
   TrendingUp,
   Activity,
@@ -27,6 +29,7 @@ import {
   Database,
   ChevronDown,
   Settings,
+  ShoppingCart,
 } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
 import {
@@ -183,6 +186,12 @@ const MENU_GROUPS: MenuGroup[] = [
         allowedRoles: ROLE_ACCESS.scanQuickEvent,
       },
       {
+        icon: <Thermometer className="h-5 w-5" />,
+        label: "Điều kiện bảo quản",
+        href: "/storage-condition",
+        allowedRoles: ROLE_ACCESS.storageCondition,
+      },
+      {
         icon: <AlertTriangle className="h-5 w-5" />,
         label: "Cảnh báo tem bất thường",
         href: "/alerts/scan-anomaly",
@@ -232,6 +241,27 @@ const MENU_GROUPS: MenuGroup[] = [
         label: "Xuất dữ liệu mở",
         href: "/export/open-data",
         allowedRoles: ["VT-05"] as const,
+      },
+    ],
+  },
+
+  // ── Thu mua ──────────────────────────
+  {
+    id: "procurement",
+    label: "Thu mua",
+    icon: <ShoppingCart className="h-5 w-5" />,
+    items: [
+      {
+        icon: <ShoppingCart className="h-5 w-5" />,
+        label: "Ghi sự kiện thu mua",
+        href: "/procurement-event",
+        allowedRoles: ROLE_ACCESS.procurementEvent,
+      },
+      {
+        icon: <Warehouse className="h-5 w-5" />,
+        label: "Nhập kho & đối chiếu",
+        href: "/warehouse-receipt",
+        allowedRoles: ROLE_ACCESS.warehouseReceipt,
       },
     ],
   },
