@@ -74,7 +74,7 @@ class aProductCategoryControllerTest {
         when(userDetails.getUsername()).thenReturn("user");
         doReturn(Collections.singletonList(new SimpleGrantedAuthority("ROLE_VT-02"))).when(userDetails).getAuthorities();
 
-        activeResponse = new ProductCategoryResponse(UUID.randomUUID(), "Xoài Cát Chu", "Cây ăn quả", "Mô tả", true);
+        activeResponse = new ProductCategoryResponse(UUID.randomUUID(), "Xoài Cát Chu", "Cây ăn quả", "Mô tả", true, null, null, null, null);
     }
 
     @Test
@@ -94,8 +94,8 @@ class aProductCategoryControllerTest {
     @Test
     void create_shouldReturnCreated_whenUserIsAdmin() throws Exception {
         // Given
-        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Mận An Phước", "Cây ăn quả", "Mận ngon");
-        ProductCategoryResponse response = new ProductCategoryResponse(UUID.randomUUID(), "Mận An Phước", "Cây ăn quả", "Mận ngon", true);
+        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Mận An Phước", "Cây ăn quả", "Mận ngon", null, null, null, null);
+        ProductCategoryResponse response = new ProductCategoryResponse(UUID.randomUUID(), "Mận An Phước", "Cây ăn quả", "Mận ngon", true, null, null, null, null);
 
         when(productCategoryService.create(any(CreateProductCategoryRequest.class))).thenReturn(response);
 
@@ -113,7 +113,7 @@ class aProductCategoryControllerTest {
     @Test
     void create_shouldReturnForbidden_whenUserIsNotAdmin() throws Exception {
         // Given
-        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Mận An Phước", "Cây ăn quả", "Mận ngon");
+        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Mận An Phước", "Cây ăn quả", "Mận ngon", null, null, null, null);
 
         // When & Then (Sử dụng user thường VT-02)
         mockMvc.perform(post("/api/v1/product-categories")
@@ -130,8 +130,8 @@ class aProductCategoryControllerTest {
     void update_shouldReturnOk_whenUserIsAdmin() throws Exception {
         // Given
         UUID categoryId = activeResponse.getId();
-        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Xoài Cao Lãnh", "Cây ăn quả", "Mô tả mới", false);
-        ProductCategoryResponse response = new ProductCategoryResponse(categoryId, "Xoài Cao Lãnh", "Cây ăn quả", "Mô tả mới", false);
+        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Xoài Cao Lãnh", "Cây ăn quả", "Mô tả mới", false, null, null, null, null);
+        ProductCategoryResponse response = new ProductCategoryResponse(categoryId, "Xoài Cao Lãnh", "Cây ăn quả", "Mô tả mới", false, null, null, null, null);
 
         when(productCategoryService.update(eq(categoryId), any(UpdateProductCategoryRequest.class))).thenReturn(response);
 
@@ -151,7 +151,7 @@ class aProductCategoryControllerTest {
     void update_shouldReturnForbidden_whenUserIsNotAdmin() throws Exception {
         // Given
         UUID categoryId = activeResponse.getId();
-        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Xoài Cao Lãnh", "Cây ăn quả", "Mô tả mới", false);
+        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Xoài Cao Lãnh", "Cây ăn quả", "Mô tả mới", false, null, null, null, null);
 
         // When & Then
         mockMvc.perform(put("/api/v1/product-categories/{id}", categoryId)

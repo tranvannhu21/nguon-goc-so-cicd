@@ -48,8 +48,8 @@ class ProductCategoryServiceTest {
         adminDetails = mock(CustomUserDetails.class);
         userDetails = mock(CustomUserDetails.class);
 
-        activeCategory = new ProductCategory(UUID.randomUUID(), "Xoài Cát Chu", "Cây ăn quả", "Xoài chuẩn xuất khẩu", true);
-        inactiveCategory = new ProductCategory(UUID.randomUUID(), "Cây Cỏ Ngọt", "Cây công nghiệp", "Bị ẩn do ngưng sản xuất", false);
+        activeCategory = new ProductCategory(UUID.randomUUID(), "Xoài Cát Chu", "Cây ăn quả", "Xoài chuẩn xuất khẩu", true, null, null, null, null);
+        inactiveCategory = new ProductCategory(UUID.randomUUID(), "Cây Cỏ Ngọt", "Cây công nghiệp", "Bị ẩn do ngưng sản xuất", false, null, null, null, null);
     }
 
     @Test
@@ -101,7 +101,7 @@ class ProductCategoryServiceTest {
     @Test
     void create_shouldSuccess_whenNameIsNotDuplicated() {
         // Given
-        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Cam Sành", "Cây ăn quả", "Cam ngọt");
+        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Cam Sành", "Cây ăn quả", "Cam ngọt", null, null, null, null);
         when(productCategoryRepository.existsByNameIgnoreCase("Cam Sành")).thenReturn(false);
         when(productCategoryRepository.save(any(ProductCategory.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -118,7 +118,7 @@ class ProductCategoryServiceTest {
     @Test
     void create_shouldThrowDuplicate_whenNameExists() {
         // Given
-        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Xoài Cát Chu", "Cây ăn quả", "Trùng tên");
+        CreateProductCategoryRequest request = new CreateProductCategoryRequest("Xoài Cát Chu", "Cây ăn quả", "Trùng tên", null, null, null, null);
         when(productCategoryRepository.existsByNameIgnoreCase("Xoài Cát Chu")).thenReturn(true);
 
         // When & Then
@@ -133,7 +133,7 @@ class ProductCategoryServiceTest {
     void update_shouldSuccess_whenValidRequest() {
         // Given
         UUID categoryId = activeCategory.getId();
-        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Xoài Cát Chu Cao Lãnh", "Cây ăn quả", "Mô tả mới", false);
+        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Xoài Cát Chu Cao Lãnh", "Cây ăn quả", "Mô tả mới", false, null, null, null, null);
 
         when(productCategoryRepository.findById(categoryId)).thenReturn(Optional.of(activeCategory));
         when(productCategoryRepository.existsByNameIgnoreCaseAndIdNot("Xoài Cát Chu Cao Lãnh", categoryId)).thenReturn(false);
@@ -153,7 +153,7 @@ class ProductCategoryServiceTest {
     void update_shouldThrowNotFound_whenIdDoesNotExist() {
         // Given
         UUID randomId = UUID.randomUUID();
-        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Cam", "Cây ăn quả", "Mô tả", true);
+        UpdateProductCategoryRequest request = new UpdateProductCategoryRequest("Cam", "Cây ăn quả", "Mô tả", true, null, null, null, null);
         when(productCategoryRepository.findById(randomId)).thenReturn(Optional.empty());
 
         // When & Then
