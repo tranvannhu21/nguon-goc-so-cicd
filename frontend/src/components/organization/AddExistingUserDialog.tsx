@@ -114,6 +114,25 @@ export function AddExistingUserDialog({
     };
 
     // Resize handlers
+    useEffect(() => {
+        const onResize = (e: MouseEvent) => {
+            if (!resizeRef.current) return;
+            const { startX, startY, startWidth, startHeight } = resizeRef.current;
+            const newWidth = Math.max(400, startWidth + (e.clientX - startX));
+            const newHeight = Math.max(300, startHeight + (e.clientY - startY));
+            setDialogSize({ width: newWidth, height: newHeight });
+        };
+        const stopResize = () => {
+            resizeRef.current = null;
+        };
+        document.addEventListener('mousemove', onResize);
+        document.addEventListener('mouseup', stopResize);
+        return () => {
+            document.removeEventListener('mousemove', onResize);
+            document.removeEventListener('mouseup', stopResize);
+        };
+    }, []);
+
     const startResize = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
             if (!dialogRef.current) return;
@@ -124,34 +143,10 @@ export function AddExistingUserDialog({
                 startWidth: rect.width,
                 startHeight: rect.height,
             };
-            document.addEventListener('mousemove', onResize);
-            document.addEventListener('mouseup', stopResize);
             e.preventDefault();
         },
         []
     );
-
-    const onResize = useCallback((e: MouseEvent) => {
-        if (!resizeRef.current) return;
-        const { startX, startY, startWidth, startHeight } = resizeRef.current;
-        const newWidth = Math.max(400, startWidth + (e.clientX - startX));
-        const newHeight = Math.max(300, startHeight + (e.clientY - startY));
-        setDialogSize({ width: newWidth, height: newHeight });
-    }, []);
-
-    const stopResize = useCallback(() => {
-        document.removeEventListener('mousemove', onResize);
-        document.removeEventListener('mouseup', stopResize);
-        resizeRef.current = null;
-    }, [onResize]);
-
-    // Clean up listeners on unmount
-    useEffect(() => {
-        return () => {
-            document.removeEventListener('mousemove', onResize);
-            document.removeEventListener('mouseup', stopResize);
-        };
-    }, [onResize, stopResize]);
 
     const toggleMaximize = () => {
         if (isMaximized) {
@@ -338,7 +333,7 @@ export function AddExistingUserDialog({
                                     </Button>
                                     {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                                         let start = Math.max(1, safePage - 2);
-                                        let end = Math.min(totalPages, start + 4);
+                                        const end = Math.min(totalPages, start + 4);
                                         if (end - start < 4) start = Math.max(1, end - 4);
                                         const page = start + i;
                                         if (page > end) return null;
